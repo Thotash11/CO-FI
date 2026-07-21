@@ -1,0 +1,197 @@
+:root {
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
+  --sidebar-hover: #1e293b;
+  --sidebar-active: #4f46e5;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+:root[data-theme="dark"] {
+  --bg-color: #0b0f19;
+  --card-bg: #151f32;
+  --text-color: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #1e293b;
+  --sidebar-bg: #0a0d14;
+  --sidebar-text: #94a3b8;
+  --sidebar-hover: #151f32;
+  --sidebar-active: #4f46e5;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+}
+
+body {
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  background-color: var(--sidebar-bg);
+  min-height: 100vh;
+  width: 260px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  transition: all 0.3s;
+  border-right: 1px solid var(--border-color);
+}
+
+.sidebar-logo {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+}
+
+.nav-item-custom {
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+  margin-bottom: 0.25rem;
+}
+
+.nav-item-custom:hover {
+  background-color: var(--sidebar-hover);
+  color: #fff;
+}
+
+.nav-item-custom.active {
+  background-color: var(--sidebar-hover);
+  color: #fff;
+  border-left-color: var(--sidebar-active);
+}
+
+.nav-item-custom i {
+  margin-right: 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* Main Content Area */
+.main-content {
+  margin-left: 260px;
+  padding: 2rem;
+  transition: all 0.3s;
+}
+
+/* Premium Card Styles */
+.card-custom {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+}
+
+.card-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-header-custom {
+  border-bottom: 1px solid var(--border-color);
+  background-color: transparent;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+}
+
+/* Table Styling */
+.table-custom {
+  color: var(--text-color);
+}
+
+.table-custom th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table-custom td {
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+/* Dark Mode Switcher button */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+:root[data-theme="dark"] .theme-toggle-btn:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+/* Top Navbar (mobile responsive trigger) */
+.mobile-navbar {
+  display: none;
+  background-color: var(--sidebar-bg);
+  padding: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .sidebar {
+    left: -260px;
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  .mobile-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 101;
+  }
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Styled Alert Messages */
+.alert-custom {
+  border-radius: 10px;
+  border: none;
+  box-shadow: var(--shadow);
+}

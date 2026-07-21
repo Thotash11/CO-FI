@@ -1,0 +1,58 @@
+{% extends 'finance/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Unit Sales / Investors</h2>
+    <a href="{% url 'unit_buyer_create' %}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50"></i> Add Person
+    </a>
+</div>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Expected Payments List</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Units</th>
+                        <th>Total Due</th>
+                        <th>Paid</th>
+                        <th>Remaining Balance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for buyer in buyers %}
+                    <tr style="cursor: pointer;" onclick="window.location='{% url 'unit_buyer_detail' buyer.pk %}'">
+                        <td class="font-weight-bold text-primary">{{ buyer.name }}</td>
+                        <td>{{ buyer.total_units }}</td>
+                        <td>₹{{ buyer.amount_due }}</td>
+                        <td class="text-success">₹{{ buyer.amount_paid }}</td>
+                        <td class="{% if buyer.balance_remaining > 0 %}text-danger font-weight-bold{% else %}text-muted{% endif %}">
+                            ₹{{ buyer.balance_remaining }}
+                        </td>
+                        <td>
+                            <a href="{% url 'unit_buyer_detail' buyer.pk %}" class="btn btn-sm btn-primary btn-icon-split me-2">
+                                <span class="icon text-white-50">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                                <span class="text">View Details</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No unit buyers added yet. <a href="{% url 'unit_buyer_create' %}">Add one now</a>.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

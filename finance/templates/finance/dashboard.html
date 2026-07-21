@@ -1,0 +1,281 @@
+{% extends 'finance/base.html' %}
+{% block title %}Dashboard - Co-Fi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 animate-fade-in">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold">Financial Dashboard</h1>
+            <p class="text-muted mb-0">Real-time business partnership financial summary</p>
+        </div>
+        <div>
+            <a href="{% url 'transaction_create' %}" class="btn btn-primary fw-semibold">
+                <i class="fas fa-plus me-2"></i>New Transaction
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total Investment -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Total Investment</span>
+                    <h3 class="fw-bold mb-0 text-truncate">₹{{ summary.total_investment }}</h3>
+                </div>
+                <div class="mt-2"><span class="badge bg-primary-subtle text-primary"><i class="fas fa-arrow-down"></i> Inflow</span></div>
+            </div>
+        </div>
+        <!-- Total Revenue -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Total Revenue</span>
+                    <h3 class="fw-bold mb-0 text-success text-truncate">₹{{ summary.total_revenue }}</h3>
+                </div>
+                <div class="mt-2"><span class="badge bg-success-subtle text-success"><i class="fas fa-plus"></i> Sales</span></div>
+            </div>
+        </div>
+        <!-- Total Expenses -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Total Expenses</span>
+                    <h3 class="fw-bold mb-0 text-danger text-truncate">₹{{ summary.total_expenses }}</h3>
+                </div>
+                <div class="mt-2"><span class="badge bg-danger-subtle text-danger"><i class="fas fa-minus"></i> Spent</span></div>
+            </div>
+        </div>
+        <!-- Net Profit/Loss -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Net Profit/Loss</span>
+                    <h3 class="fw-bold mb-0 {% if summary.net_profit >= 0 %}text-success{% else %}text-danger{% endif %} text-truncate">
+                        ₹{{ summary.net_profit }}
+                    </h3>
+                </div>
+                <div class="mt-2">
+                    <span class="badge {% if summary.net_profit >= 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                        {% if summary.net_profit >= 0 %}<i class="fas fa-caret-up"></i> Profit{% else %}<i class="fas fa-caret-down"></i> Loss{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Cash Balance -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Cash Balance</span>
+                    <h3 class="fw-bold mb-0 text-info text-truncate">₹{{ summary.cash_balance }}</h3>
+                </div>
+                <div class="mt-2"><span class="badge bg-info-subtle text-info"><i class="fas fa-university"></i> Live</span></div>
+            </div>
+        </div>
+        <!-- Total Withdrawals -->
+        <div class="col-6 col-lg-2">
+            <div class="card-custom p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                    <span class="text-muted d-block mb-1" style="font-size: 0.85rem;">Total Withdrawals</span>
+                    <h3 class="fw-bold mb-0 text-warning text-truncate">₹{{ summary.total_withdrawals }}</h3>
+                </div>
+                <div class="mt-2"><span class="badge bg-warning-subtle text-warning"><i class="fas fa-arrow-up"></i> Outflow</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partner Accounts Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-xl-8">
+            <div class="card-custom h-100">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users me-2 text-primary"></i>Partner Capital & Profit Summary</span>
+                    <span class="text-muted fw-normal" style="font-size: 0.85rem;">Distribution by investment ratio</span>
+                </div>
+                <div class="p-3">
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Partner Name</th>
+                                    <th class="text-end">Invested</th>
+                                    <th class="text-end">Expenses Paid</th>
+                                    <th class="text-end">Withdrawn</th>
+                                    <th class="text-end">Capital Contribution</th>
+                                    <th class="text-end">Profit Share %</th>
+                                    <th class="text-end">Amount Due (Profit)</th>
+                                    <th class="text-end">Net Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in partners %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary-subtle text-primary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <strong>{{ p.partner.name|slice:":1" }}</strong>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ p.partner.name }}</div>
+                                                <small class="text-muted">{{ p.partner.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end fw-medium text-success">₹{{ p.total_invested }}</td>
+                                    <td class="text-end text-warning">₹{{ p.total_expenses }}</td>
+                                    <td class="text-end text-danger">₹{{ p.total_withdrawn }}</td>
+                                    <td class="text-end fw-medium text-info">₹{{ p.capital_contribution }}</td>
+                                    <td class="text-end"><span class="badge bg-secondary-subtle text-secondary">{{ p.share_pct }}%</span></td>
+                                    <td class="text-end fw-medium {% if p.profit_share >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ p.profit_share }}</td>
+                                    <td class="text-end fw-bold text-primary">₹{{ p.net_balance }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">No partners registered.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick actions / stats -->
+        <div class="col-12 col-xl-4">
+            <div class="card-custom h-100">
+                <div class="card-header-custom"><i class="fas fa-file-export me-2 text-primary"></i>Financial Exports</div>
+                <div class="p-4 d-flex flex-column gap-3 justify-content-center h-100">
+                    <a href="{% url 'export_transactions' %}" class="btn btn-outline-primary w-100 py-2.5 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-file-csv me-2"></i>Export Transactions</span>
+                        <i class="fas fa-download"></i>
+                    </a>
+                    <a href="{% url 'export_reports' %}" class="btn btn-outline-success w-100 py-2.5 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-file-excel me-2"></i>Export Financial Reports</span>
+                        <i class="fas fa-download"></i>
+                    </a>
+                    <hr class="my-2 border-secondary-subtle">
+                    <a href="{% url 'reports' %}" class="btn btn-light w-100 py-2">
+                        View Detailed Summaries <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Logs -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-chart-area me-2 text-primary"></i>Revenue vs. Expenses Trend</div>
+                <div class="p-3">
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Audit Log / Activity -->
+        <div class="col-12 col-lg-4">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-history me-2 text-primary"></i>Recent Changes (Audit Log)</div>
+                <div class="p-3">
+                    <ul class="list-group list-group-flush" style="font-size: 0.9rem;">
+                        {% for log in audit_logs %}
+                        <li class="list-group-item px-0 py-2.5 bg-transparent text-truncate">
+                            <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                <span><i class="fas fa-user-edit me-1"></i>{{ log.user.username }}</span>
+                                <span>{{ log.timestamp|date:"d M H:i" }}</span>
+                            </div>
+                            <div class="fw-medium text-truncate mt-1 text-secondary-emphasis">{{ log.details }}</div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item px-0 py-4 text-center text-muted bg-transparent">No change logs recorded.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('financialChart').getContext('2d');
+        const months = {{ chart_months|safe }};
+        const revenues = {{ chart_revenue|safe }};
+        const expenses = {{ chart_expenses|safe }};
+        const profits = {{ chart_profit|safe }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: revenues,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Expenses',
+                        data: expenses,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Net Profit',
+                        data: profits,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: 'currentColor'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'currentColor'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        },
+                        ticks: {
+                            color: 'currentColor'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

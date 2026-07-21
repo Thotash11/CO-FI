@@ -1,0 +1,87 @@
+{% extends 'finance/base.html' %}
+{% block title %}{{ title }} - Co-Fi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 animate-fade-in" style="max-width: 600px;">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <a href="{% url 'transactions' %}" class="btn btn-link text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-1"></i> Back to Transactions
+        </a>
+        <h1 class="h3 mb-1 fw-bold">{{ title }}</h1>
+        <p class="text-muted mb-0">Please fill out the form fields with valid transaction information</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card-custom">
+        <div class="p-4">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 alert-custom mb-3" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <small><i class="fas fa-exclamation-circle me-1"></i> {{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Date -->
+                <div class="mb-3">
+                    <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold text-secondary-emphasis">Transaction Date</label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                        <div class="text-danger mt-1 small">{% for err in form.date.errors %}{{ err }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Transaction Type -->
+                <div class="mb-3">
+                    <label for="{{ form.transaction_type.id_for_label }}" class="form-label fw-semibold text-secondary-emphasis">Transaction Type</label>
+                    {{ form.transaction_type }}
+                    {% if form.transaction_type.errors %}
+                        <div class="text-danger mt-1 small">{% for err in form.transaction_type.errors %}{{ err }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Partner -->
+                <div class="mb-3">
+                    <label for="{{ form.partner.id_for_label }}" class="form-label fw-semibold text-secondary-emphasis">Partner Name</label>
+                    {{ form.partner }}
+                    <small class="text-muted mt-1 d-block">Required for Investments and Withdrawals. Leave blank for general business expenses/income.</small>
+                    {% if form.partner.errors %}
+                        <div class="text-danger mt-1 small">{% for err in form.partner.errors %}{{ err }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="{{ form.amount.id_for_label }}" class="form-label fw-semibold text-secondary-emphasis">Amount (₹)</label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="text-danger mt-1 small">{% for err in form.amount.errors %}{{ err }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold text-secondary-emphasis">Description / Notes</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger mt-1 small">{% for err in form.description.errors %}{{ err }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary fw-semibold flex-grow-1 py-2">
+                        Save Transaction <i class="fas fa-save ms-1"></i>
+                    </button>
+                    <a href="{% url 'transactions' %}" class="btn btn-outline-secondary py-2 px-4">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

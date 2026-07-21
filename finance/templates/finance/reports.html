@@ -1,0 +1,186 @@
+{% extends 'finance/base.html' %}
+{% block title %}Financial Reports - Co-Fi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 animate-fade-in">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold">Financial Reports</h1>
+            <p class="text-muted mb-0">Detailed profit, loss, and contribution summaries</p>
+        </div>
+        <div>
+            <a href="{% url 'export_reports' %}" class="btn btn-outline-primary fw-semibold">
+                <i class="fas fa-file-excel me-2"></i>Export Excel Report
+            </a>
+        </div>
+    </div>
+
+    <!-- P&L and Partner Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Profit & Loss Summary Card -->
+        <div class="col-12 col-lg-6">
+            <div class="card-custom h-100">
+                <div class="card-header-custom"><i class="fas fa-chart-line me-2 text-success"></i>Profit and Loss Statement Summary</div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary-subtle">
+                        <span class="text-secondary-emphasis font-medium">Total Operating Revenue (Income)</span>
+                        <span class="fw-semibold text-success">₹{{ summary.total_revenue }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary-subtle">
+                        <span class="text-secondary-emphasis font-medium">Total Operating Expenses</span>
+                        <span class="fw-semibold text-danger">₹{{ summary.total_expenses }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom border-secondary-subtle bg-light-subtle rounded px-2 mt-2">
+                        <span class="fw-bold">Net Profit / Loss</span>
+                        <span class="fw-bold {% if summary.net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ₹{{ summary.net_profit }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partner Contributions Card -->
+        <div class="col-12 col-lg-6">
+            <div class="card-custom h-100">
+                <div class="card-header-custom"><i class="fas fa-shield-halved me-2 text-indigo"></i>Partner Contributions Summary</div>
+                <div class="p-4">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Partner</th>
+                                    <th class="text-end">Investment</th>
+                                    <th class="text-end">Expenses</th>
+                                    <th class="text-end">Withdrawn</th>
+                                    <th class="text-end">Ratio %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in partners %}
+                                <tr>
+                                    <td class="fw-semibold">{{ p.partner.name }}</td>
+                                    <td class="text-end text-success">₹{{ p.total_invested }}</td>
+                                    <td class="text-end text-warning">₹{{ p.total_expenses }}</td>
+                                    <td class="text-end text-danger">₹{{ p.total_withdrawn }}</td>
+                                    <td class="text-end"><span class="badge bg-primary-subtle text-primary">{{ p.share_pct }}%</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily, Monthly, Yearly Summaries -->
+    <div class="row g-4">
+        <!-- Monthly Summary -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-calendar-alt me-2 text-primary"></i>Monthly Summaries</div>
+                <div class="p-3">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-custom table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th class="text-end">Income</th>
+                                    <th class="text-end">Expense</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in monthly_summaries %}
+                                <tr>
+                                    <td class="fw-semibold">{{ item.month|date:"F Y" }}</td>
+                                    <td class="text-end text-success">{% if item.income %}₹{{ item.income }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-danger">{% if item.expense %}₹{{ item.expense }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-muted">{{ item.count }} tx</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No monthly records.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Summary -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-calendar-day me-2 text-primary"></i>Daily Summaries (Last 30 Days)</div>
+                <div class="p-3">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-custom table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th class="text-end">Income</th>
+                                    <th class="text-end">Expense</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in daily_summaries %}
+                                <tr>
+                                    <td class="fw-semibold">{{ item.date|date:"d M Y" }}</td>
+                                    <td class="text-end text-success">{% if item.income %}₹{{ item.income }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-danger">{% if item.expense %}₹{{ item.expense }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-muted">{{ item.count }} tx</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No daily records.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yearly Summary -->
+        <div class="col-12 col-md-12 col-lg-4">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-calendar-check me-2 text-primary"></i>Yearly Summaries</div>
+                <div class="p-3">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-custom table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th class="text-end">Income</th>
+                                    <th class="text-end">Expense</th>
+                                    <th class="text-end">Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in yearly_summaries %}
+                                <tr>
+                                    <td class="fw-semibold">{{ item.year|date:"Y" }}</td>
+                                    <td class="text-end text-success">{% if item.income %}₹{{ item.income }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-danger">{% if item.expense %}₹{{ item.expense }}{% else %}-{% endif %}</td>
+                                    <td class="text-end text-muted">{{ item.count }} tx</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No yearly records.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
