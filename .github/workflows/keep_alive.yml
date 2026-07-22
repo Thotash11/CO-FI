@@ -14,5 +14,5 @@ jobs:
         run: |
           # The -L flag follows redirects (like to the login page)
           # Replace 'your-app-name' with your actual Render URL
-          curl -I -s -L https://your-app-name.onrender.com > /dev/null
+          curl -I -s -L https://co-fi-app.onrender.com > /dev/null
           echo "Pinged successfully"
