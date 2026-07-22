@@ -13,6 +13,7 @@ db.sqlite3
 
 # Static files
 staticfiles/
+media/
 
 # VS Code
 .vscode/

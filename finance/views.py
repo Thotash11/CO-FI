@@ -33,7 +33,8 @@ def send_transaction_email(action, tx, user):
         )
         recipient_list = [p.email for p in Partner.objects.all() if p.email]
         # Always send to the requested admin email
-        admin_email = 'ashishpatel11aca@gmail.com'
+        import os
+        admin_email = os.getenv('ADMIN_EMAIL', 'ashishpatel11aca@gmail.com')
         if admin_email not in recipient_list:
             recipient_list.append(admin_email)
             
