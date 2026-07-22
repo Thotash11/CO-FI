@@ -53,7 +53,7 @@ def send_transaction_email(action, tx, user):
                 
     threading.Thread(target=send).start()
 
-def get_financial_summary(transactions=None):
+def get_financial_summary(request, transactions=None):
     if transactions is None:
         transactions = Transaction.objects.filter(created_by=request.user)
     
@@ -74,12 +74,12 @@ def get_financial_summary(transactions=None):
         'cash_balance': cash_balance,
     }
 
-def get_partners_summary(all_transactions=None):
+def get_partners_summary(request, all_transactions=None):
     if all_transactions is None:
         all_transactions = Transaction.objects.filter(created_by=request.user)
     
     partners = Partner.objects.filter(user=request.user)
-    summary = get_financial_summary(all_transactions)
+    summary = get_financial_summary(request, all_transactions)
     net_profit = summary['net_profit']
     
     total_invested_all = all_transactions.filter(transaction_type='Investment').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -113,8 +113,8 @@ def get_partners_summary(all_transactions=None):
 @login_required
 def dashboard_view(request):
     transactions = Transaction.objects.filter(created_by=request.user).order_by('-date', '-timestamp')
-    summary = get_financial_summary(transactions)
-    partners = get_partners_summary(transactions)
+    summary = get_financial_summary(request, transactions)
+    partners = get_partners_summary(request, transactions)
     
     # Chart Data (monthly trends)
     monthly_data = Transaction.objects.filter(created_by=request.user).annotate(
@@ -288,8 +288,8 @@ def reports_view(request):
         count=Count('id')
     ).order_by('-year')
     
-    summary = get_financial_summary(Transaction.objects.filter(created_by=request.user))
-    partners = get_partners_summary(Transaction.objects.filter(created_by=request.user))
+    summary = get_financial_summary(request, Transaction.objects.filter(created_by=request.user))
+    partners = get_partners_summary(request, Transaction.objects.filter(created_by=request.user))
     
     context = {
         'daily_summaries': daily_summaries,
@@ -412,7 +412,7 @@ def export_reports_csv(request):
     writer = csv.writer(response)
     
     # Financial Overview
-    summary = get_financial_summary(Transaction.objects.filter(created_by=request.user))
+    summary = get_financial_summary(request, Transaction.objects.filter(created_by=request.user))
     writer.writerow(['FINANCIAL OVERVIEW'])
     writer.writerow(['Metric', 'Amount (₹)'])
     writer.writerow(['Total Investment', summary['total_investment']])
@@ -426,7 +426,7 @@ def export_reports_csv(request):
     # Partner Summary
     writer.writerow(['PARTNER CAPITAL ACCOUNTS'])
     writer.writerow(['Partner Name', 'Total Invested', 'Total Withdrawn', 'Capital Contribution', 'Profit Share %', 'Profit Share Share', 'Net Balance'])
-    for p in get_partners_summary(Transaction.objects.filter(created_by=request.user)):
+    for p in get_partners_summary(request, Transaction.objects.filter(created_by=request.user)):
         writer.writerow([
             p['partner'].name,
             p['total_invested'],
