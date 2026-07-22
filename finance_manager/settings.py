@@ -150,6 +150,7 @@ DEFAULT_FROM_EMAIL = 'Co-Fi Updates <ashishpatel11aca@gmail.com>'
 
 # Security Settings for Production
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
