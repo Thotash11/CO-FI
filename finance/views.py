@@ -438,3 +438,21 @@ def export_reports_csv(request):
         ])
         
     return response
+
+
+from django.contrib.auth.forms import UserCreationForm
+
+def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+        
+    return render(request, 'finance/signup.html', {'form': form})

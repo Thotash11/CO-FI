@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='finance/login.html', redirect_authenticated_user=True), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('signup/', views.signup_view, name='signup'),
     path('', views.dashboard_view, name='dashboard'),
     path('transactions/', views.transaction_list, name='transactions'),
     path('transactions/create/', views.transaction_create, name='transaction_create'),
