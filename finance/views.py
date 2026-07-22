@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -109,6 +110,7 @@ def get_partners_summary(all_transactions=None):
     return partner_data
 
 # Dashboard View
+@login_required
 def dashboard_view(request):
     transactions = Transaction.objects.all().order_by('-date', '-timestamp')
     summary = get_financial_summary(transactions)
@@ -159,6 +161,7 @@ def dashboard_view(request):
     return render(request, 'finance/dashboard.html', context)
 
 # Transaction Views
+@login_required
 def transaction_list(request):
     transactions = Transaction.objects.all().order_by('-date', '-timestamp')
     
@@ -196,6 +199,7 @@ def transaction_list(request):
     }
     return render(request, 'finance/transaction_list.html', context)
 
+@login_required
 def transaction_create(request):
     if request.method == 'POST':
         form = TransactionForm(request.POST)
@@ -217,6 +221,7 @@ def transaction_create(request):
         form = TransactionForm()
     return render(request, 'finance/transaction_form.html', {'form': form, 'title': 'Add Transaction'})
 
+@login_required
 def transaction_update(request, pk):
     tx = get_object_or_404(Transaction, pk=pk)
     old_val = str(tx)
@@ -237,6 +242,7 @@ def transaction_update(request, pk):
         form = TransactionForm(instance=tx)
     return render(request, 'finance/transaction_form.html', {'form': form, 'title': 'Edit Transaction'})
 
+@login_required
 def transaction_delete(request, pk):
     tx = get_object_or_404(Transaction, pk=pk)
     if request.method == 'POST':
@@ -253,6 +259,7 @@ def transaction_delete(request, pk):
     return redirect('transactions')
 
 # Reports Page
+@login_required
 def reports_view(request):
     # Daily, Monthly, Yearly summaries
     daily_summaries = Transaction.objects.values('date').annotate(
@@ -290,6 +297,7 @@ def reports_view(request):
     return render(request, 'finance/reports.html', context)
 
 # CSV Export Views
+@login_required
 def export_transactions_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="transactions_{timezone.now().strftime("%Y%m%d")}.csv"'
@@ -304,10 +312,12 @@ def export_transactions_csv(request):
         
     return response
 # Unit Buyer Views
+@login_required
 def unit_buyer_list(request):
     buyers = UnitBuyer.objects.all().order_by('name')
     return render(request, 'finance/unit_buyers_list.html', {'buyers': buyers})
 
+@login_required
 def unit_buyer_create(request):
     if request.method == 'POST':
         form = UnitBuyerForm(request.POST)
@@ -319,6 +329,7 @@ def unit_buyer_create(request):
         form = UnitBuyerForm()
     return render(request, 'finance/unit_buyer_form.html', {'form': form, 'title': 'Add Unit Buyer'})
 
+@login_required
 def unit_buyer_update(request, pk):
     buyer = get_object_or_404(UnitBuyer, pk=pk)
     if request.method == 'POST':
@@ -331,6 +342,7 @@ def unit_buyer_update(request, pk):
         form = UnitBuyerForm(instance=buyer)
     return render(request, 'finance/unit_buyer_form.html', {'form': form, 'title': 'Edit Unit Buyer'})
 
+@login_required
 def unit_buyer_delete(request, pk):
     buyer = get_object_or_404(UnitBuyer, pk=pk)
     if request.method == 'POST':
@@ -339,11 +351,13 @@ def unit_buyer_delete(request, pk):
         messages.success(request, f"Successfully deleted {name}.")
     return redirect('unit_buyers')
 
+@login_required
 def unit_buyer_detail(request, pk):
     buyer = get_object_or_404(UnitBuyer, pk=pk)
     transactions = buyer.transactions.all().order_by('-date', '-created_at')
     return render(request, 'finance/unit_buyer_detail.html', {'buyer': buyer, 'transactions': transactions})
 
+@login_required
 def unit_buyer_add_transaction(request, pk):
     buyer = get_object_or_404(UnitBuyer, pk=pk)
     if request.method == 'POST':
@@ -358,6 +372,7 @@ def unit_buyer_add_transaction(request, pk):
         form = UnitBuyerTransactionForm(initial={'buyer': buyer})
     return render(request, 'finance/unit_buyer_transaction_form.html', {'form': form, 'buyer': buyer, 'title': f'Add Transaction for {buyer.name}'})
 
+@login_required
 def unit_buyer_transaction_update(request, pk):
     tx = get_object_or_404(UnitBuyerTransaction, pk=pk)
     buyer = tx.buyer
@@ -371,6 +386,7 @@ def unit_buyer_transaction_update(request, pk):
         form = UnitBuyerTransactionForm(instance=tx)
     return render(request, 'finance/unit_buyer_transaction_form.html', {'form': form, 'buyer': buyer, 'title': f'Edit Transaction for {buyer.name}'})
 
+@login_required
 def unit_buyer_transaction_delete(request, pk):
     tx = get_object_or_404(UnitBuyerTransaction, pk=pk)
     buyer = tx.buyer
@@ -378,6 +394,7 @@ def unit_buyer_transaction_delete(request, pk):
         tx.delete()
         messages.success(request, f"Transaction deleted for {buyer.name}.")
     return redirect('unit_buyer_detail', pk=buyer.pk)
+@login_required
 def export_reports_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="financial_summary_{timezone.now().strftime("%Y%m%d")}.csv"'
