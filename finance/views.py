@@ -32,7 +32,7 @@ def send_transaction_email(action, tx, user):
             f"- Notes: {tx.description}\n\n"
             f"Please check your Co-Fi dashboard for full details."
         )
-        recipient_list = [p.email for p in Partner.objects.all() if p.email]
+        recipient_list = [p.email for p in Partner.objects.filter(user=request.user) if p.email]
         # Always send to the requested admin email
         import os
         admin_email = os.getenv('ADMIN_EMAIL', 'ashishpatel11aca@gmail.com')
@@ -55,7 +55,7 @@ def send_transaction_email(action, tx, user):
 
 def get_financial_summary(transactions=None):
     if transactions is None:
-        transactions = Transaction.objects.all()
+        transactions = Transaction.objects.filter(created_by=request.user)
     
     total_investment = transactions.filter(transaction_type='Investment').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     total_revenue = transactions.filter(transaction_type='Income').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
@@ -76,9 +76,9 @@ def get_financial_summary(transactions=None):
 
 def get_partners_summary(all_transactions=None):
     if all_transactions is None:
-        all_transactions = Transaction.objects.all()
+        all_transactions = Transaction.objects.filter(created_by=request.user)
     
-    partners = Partner.objects.all()
+    partners = Partner.objects.filter(user=request.user)
     summary = get_financial_summary(all_transactions)
     net_profit = summary['net_profit']
     
@@ -112,12 +112,12 @@ def get_partners_summary(all_transactions=None):
 # Dashboard View
 @login_required
 def dashboard_view(request):
-    transactions = Transaction.objects.all().order_by('-date', '-timestamp')
+    transactions = Transaction.objects.filter(created_by=request.user).order_by('-date', '-timestamp')
     summary = get_financial_summary(transactions)
     partners = get_partners_summary(transactions)
     
     # Chart Data (monthly trends)
-    monthly_data = Transaction.objects.annotate(
+    monthly_data = Transaction.objects.filter(created_by=request.user).annotate(
         month=TruncMonth('date')
     ).values('month', 'transaction_type').annotate(
         total_amount=Sum('amount')
@@ -146,7 +146,7 @@ def dashboard_view(request):
         chart_profit.append(vals['revenue'] - vals['expense'])
         
     # Get recent audit logs
-    audit_logs = AuditLog.objects.all().order_by('-timestamp')[:5]
+    audit_logs = AuditLog.objects.filter(user=request.user).order_by('-timestamp')[:5]
     
     context = {
         'summary': summary,
@@ -163,7 +163,7 @@ def dashboard_view(request):
 # Transaction Views
 @login_required
 def transaction_list(request):
-    transactions = Transaction.objects.all().order_by('-date', '-timestamp')
+    transactions = Transaction.objects.filter(created_by=request.user).order_by('-date', '-timestamp')
     
     # Filtering
     search_query = request.GET.get('search', '')
@@ -185,7 +185,7 @@ def transaction_list(request):
     if partner_id:
         transactions = transactions.filter(partner_id=partner_id)
         
-    partners = Partner.objects.all()
+    partners = Partner.objects.filter(user=request.user)
     
     from django.db.models import Q
     context = {
@@ -203,6 +203,7 @@ def transaction_list(request):
 def transaction_create(request):
     if request.method == 'POST':
         form = TransactionForm(request.POST)
+        form.fields['partner'].queryset = Partner.objects.filter(user=request.user)
         if form.is_valid():
             tx = form.save(commit=False)
             tx.created_by = request.user if request.user.is_authenticated else None
@@ -219,14 +220,16 @@ def transaction_create(request):
             return redirect('transactions')
     else:
         form = TransactionForm()
+        form.fields['partner'].queryset = Partner.objects.filter(user=request.user)
     return render(request, 'finance/transaction_form.html', {'form': form, 'title': 'Add Transaction'})
 
 @login_required
 def transaction_update(request, pk):
-    tx = get_object_or_404(Transaction, pk=pk)
+    tx = get_object_or_404(Transaction, pk=pk, created_by=request.user)
     old_val = str(tx)
     if request.method == 'POST':
         form = TransactionForm(request.POST, instance=tx)
+        form.fields['partner'].queryset = Partner.objects.filter(user=request.user)
         if form.is_valid():
             form.save()
             # Log action
@@ -240,11 +243,12 @@ def transaction_update(request, pk):
             return redirect('transactions')
     else:
         form = TransactionForm(instance=tx)
+        form.fields['partner'].queryset = Partner.objects.filter(user=request.user)
     return render(request, 'finance/transaction_form.html', {'form': form, 'title': 'Edit Transaction'})
 
 @login_required
 def transaction_delete(request, pk):
-    tx = get_object_or_404(Transaction, pk=pk)
+    tx = get_object_or_404(Transaction, pk=pk, created_by=request.user)
     if request.method == 'POST':
         details = f"Deleted Transaction: {tx}"
         tx.delete()
@@ -262,13 +266,13 @@ def transaction_delete(request, pk):
 @login_required
 def reports_view(request):
     # Daily, Monthly, Yearly summaries
-    daily_summaries = Transaction.objects.values('date').annotate(
+    daily_summaries = Transaction.objects.filter(created_by=request.user).values('date').annotate(
         income=Sum('amount', filter=Q(transaction_type='Income')),
         expense=Sum('amount', filter=Q(transaction_type='Expense')),
         count=Count('id')
     ).order_by('-date')[:30]
     
-    monthly_summaries = Transaction.objects.annotate(
+    monthly_summaries = Transaction.objects.filter(created_by=request.user).annotate(
         month=TruncMonth('date')
     ).values('month').annotate(
         income=Sum('amount', filter=Q(transaction_type='Income')),
@@ -276,7 +280,7 @@ def reports_view(request):
         count=Count('id')
     ).order_by('-month')
     
-    yearly_summaries = Transaction.objects.annotate(
+    yearly_summaries = Transaction.objects.filter(created_by=request.user).annotate(
         year=TruncYear('date')
     ).values('year').annotate(
         income=Sum('amount', filter=Q(transaction_type='Income')),
@@ -284,8 +288,8 @@ def reports_view(request):
         count=Count('id')
     ).order_by('-year')
     
-    summary = get_financial_summary()
-    partners = get_partners_summary()
+    summary = get_financial_summary(Transaction.objects.filter(created_by=request.user))
+    partners = get_partners_summary(Transaction.objects.filter(created_by=request.user))
     
     context = {
         'daily_summaries': daily_summaries,
@@ -305,7 +309,7 @@ def export_transactions_csv(request):
     writer = csv.writer(response)
     writer.writerow(['Date', 'Type', 'Partner', 'Amount (₹)', 'Description', 'Created By', 'Timestamp'])
     
-    for tx in Transaction.objects.all().order_by('-date'):
+    for tx in Transaction.objects.filter(created_by=request.user).order_by('-date'):
         partner_name = tx.partner.name if tx.partner else 'General Business'
         created_by = tx.created_by.username if tx.created_by else 'System'
         writer.writerow([tx.date, tx.transaction_type, partner_name, tx.amount, tx.description, created_by, tx.timestamp])
@@ -314,7 +318,7 @@ def export_transactions_csv(request):
 # Unit Buyer Views
 @login_required
 def unit_buyer_list(request):
-    buyers = UnitBuyer.objects.all().order_by('name')
+    buyers = UnitBuyer.objects.filter(user=request.user).order_by('name')
     return render(request, 'finance/unit_buyers_list.html', {'buyers': buyers})
 
 @login_required
@@ -322,7 +326,9 @@ def unit_buyer_create(request):
     if request.method == 'POST':
         form = UnitBuyerForm(request.POST)
         if form.is_valid():
-            buyer = form.save()
+            buyer = form.save(commit=False)
+            buyer.user = request.user
+            buyer.save()
             messages.success(request, f"Successfully added {buyer.name}.")
             return redirect('unit_buyers')
     else:
@@ -331,7 +337,7 @@ def unit_buyer_create(request):
 
 @login_required
 def unit_buyer_update(request, pk):
-    buyer = get_object_or_404(UnitBuyer, pk=pk)
+    buyer = get_object_or_404(UnitBuyer, pk=pk, user=request.user)
     if request.method == 'POST':
         form = UnitBuyerForm(request.POST, instance=buyer)
         if form.is_valid():
@@ -344,7 +350,7 @@ def unit_buyer_update(request, pk):
 
 @login_required
 def unit_buyer_delete(request, pk):
-    buyer = get_object_or_404(UnitBuyer, pk=pk)
+    buyer = get_object_or_404(UnitBuyer, pk=pk, user=request.user)
     if request.method == 'POST':
         name = buyer.name
         buyer.delete()
@@ -353,15 +359,16 @@ def unit_buyer_delete(request, pk):
 
 @login_required
 def unit_buyer_detail(request, pk):
-    buyer = get_object_or_404(UnitBuyer, pk=pk)
+    buyer = get_object_or_404(UnitBuyer, pk=pk, user=request.user)
     transactions = buyer.transactions.all().order_by('-date', '-created_at')
     return render(request, 'finance/unit_buyer_detail.html', {'buyer': buyer, 'transactions': transactions})
 
 @login_required
 def unit_buyer_add_transaction(request, pk):
-    buyer = get_object_or_404(UnitBuyer, pk=pk)
+    buyer = get_object_or_404(UnitBuyer, pk=pk, user=request.user)
     if request.method == 'POST':
         form = UnitBuyerTransactionForm(request.POST)
+        form.fields['buyer'].queryset = UnitBuyer.objects.filter(user=request.user)
         if form.is_valid():
             tx = form.save(commit=False)
             tx.buyer = buyer
@@ -370,25 +377,28 @@ def unit_buyer_add_transaction(request, pk):
             return redirect('unit_buyer_detail', pk=buyer.pk)
     else:
         form = UnitBuyerTransactionForm(initial={'buyer': buyer})
+        form.fields['buyer'].queryset = UnitBuyer.objects.filter(user=request.user)
     return render(request, 'finance/unit_buyer_transaction_form.html', {'form': form, 'buyer': buyer, 'title': f'Add Transaction for {buyer.name}'})
 
 @login_required
 def unit_buyer_transaction_update(request, pk):
-    tx = get_object_or_404(UnitBuyerTransaction, pk=pk)
+    tx = get_object_or_404(UnitBuyerTransaction, pk=pk, buyer__user=request.user)
     buyer = tx.buyer
     if request.method == 'POST':
         form = UnitBuyerTransactionForm(request.POST, instance=tx)
+        form.fields['buyer'].queryset = UnitBuyer.objects.filter(user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f"Transaction updated for {buyer.name}.")
             return redirect('unit_buyer_detail', pk=buyer.pk)
     else:
         form = UnitBuyerTransactionForm(instance=tx)
+        form.fields['buyer'].queryset = UnitBuyer.objects.filter(user=request.user)
     return render(request, 'finance/unit_buyer_transaction_form.html', {'form': form, 'buyer': buyer, 'title': f'Edit Transaction for {buyer.name}'})
 
 @login_required
 def unit_buyer_transaction_delete(request, pk):
-    tx = get_object_or_404(UnitBuyerTransaction, pk=pk)
+    tx = get_object_or_404(UnitBuyerTransaction, pk=pk, buyer__user=request.user)
     buyer = tx.buyer
     if request.method == 'POST':
         tx.delete()
@@ -402,7 +412,7 @@ def export_reports_csv(request):
     writer = csv.writer(response)
     
     # Financial Overview
-    summary = get_financial_summary()
+    summary = get_financial_summary(Transaction.objects.filter(created_by=request.user))
     writer.writerow(['FINANCIAL OVERVIEW'])
     writer.writerow(['Metric', 'Amount (₹)'])
     writer.writerow(['Total Investment', summary['total_investment']])
@@ -416,7 +426,7 @@ def export_reports_csv(request):
     # Partner Summary
     writer.writerow(['PARTNER CAPITAL ACCOUNTS'])
     writer.writerow(['Partner Name', 'Total Invested', 'Total Withdrawn', 'Capital Contribution', 'Profit Share %', 'Profit Share Share', 'Net Balance'])
-    for p in get_partners_summary():
+    for p in get_partners_summary(Transaction.objects.filter(created_by=request.user)):
         writer.writerow([
             p['partner'].name,
             p['total_invested'],

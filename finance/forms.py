@@ -42,7 +42,7 @@ class UnitBuyerForm(forms.ModelForm):
         model = UnitBuyer
         fields = ['name']
         widgets = {
-            'name': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buyer Name'}),
         }
 
 class UnitBuyerTransactionForm(forms.ModelForm):

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Partner(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='partner_profile')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='partner_profiles')
     name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True)
@@ -53,12 +53,8 @@ class Report(models.Model):
         return f"{self.name} ({self.report_type}) - {self.generated_at}"
 
 class UnitBuyer(models.Model):
-    BUYER_CHOICES = [
-        ('Raju', 'Raju'),
-        ('Ramesh', 'Ramesh'),
-        ('Govindha Raju', 'Govindha Raju'),
-    ]
-    name = models.CharField(max_length=150, choices=BUYER_CHOICES, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='unit_buyers', null=True)
+    name = models.CharField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
     
     @property
