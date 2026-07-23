@@ -2,10 +2,14 @@
 # exit on error
 set -o errexit
 
+echo "==> Installing dependencies..."
 pip install -r requirements.txt
 
+echo "==> Collecting static files..."
 python manage.py collectstatic --noinput
 
+echo "==> Running database migrations..."
 python manage.py migrate
 
-python create_admin.py
+echo "==> Creating default admin user (if not exists)..."
+python manage.py create_default_admin

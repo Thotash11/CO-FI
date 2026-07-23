@@ -1,1 +1,1 @@
-web: gunicorn finance_manager.wsgi
+web: gunicorn finance_manager.wsgi --workers 2 --threads 4 --timeout 60 --bind 0.0.0.0:$PORT --log-level info
