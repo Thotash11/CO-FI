@@ -449,10 +449,11 @@ def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            auth_login(request, user)
-            return redirect('dashboard')
+            form.save()
+            messages.success(request, 'Account created successfully! Please log in with your new credentials.')
+            return redirect('login')
     else:
         form = UserCreationForm()
         
     return render(request, 'finance/signup.html', {'form': form})
+

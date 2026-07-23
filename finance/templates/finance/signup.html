@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Co-Fi</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -16,12 +13,16 @@
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #e2e8f0;
+            --muted-color: #64748b;
+            --input-bg: #f8fafc;
         }
         :root[data-theme="dark"] {
             --bg-color: #0b0f19;
             --card-bg: #151f32;
             --text-color: #f1f5f9;
             --border-color: #1e293b;
+            --muted-color: #94a3b8;
+            --input-bg: #0d1526;
         }
         body {
             font-family: 'Outfit', sans-serif;
@@ -32,13 +33,13 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.3s;
-            padding: 20px 0;
+            padding: 30px 16px;
         }
-        .login-card {
+        .signup-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 480px;
             padding: 2.5rem;
@@ -48,19 +49,33 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .form-control {
-            background-color: var(--bg-color);
-            border-color: var(--border-color);
-            color: var(--text-color);
+        .form-control, .input-group-text, .btn-outline-secondary {
+            background-color: var(--input-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-color) !important;
         }
         .form-control:focus {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--input-bg) !important;
+            color: var(--text-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.2);
+            border-color: #6366f1 !important;
         }
+        .btn-outline-secondary:hover {
+            background-color: var(--border-color) !important;
+        }
+        label { color: var(--text-color); }
+        .text-muted { color: var(--muted-color) !important; }
         .help-text {
-            font-size: 0.8rem;
-            color: #64748b;
+            font-size: 0.78rem;
+            color: var(--muted-color);
+            margin-top: 4px;
         }
+        .field-error {
+            font-size: 0.82rem;
+            color: #ef4444;
+            margin-top: 4px;
+        }
+        .brand-icon { color: #6366f1; }
     </style>
     <script>
         (function() {
@@ -70,50 +85,95 @@
     </script>
 </head>
 <body>
-
-    <div class="login-card">
+    <div class="signup-card">
         <div class="text-center mb-4">
-            <span class="fs-2 fw-bold text-indigo"><i class="fas fa-wallet me-2 text-primary"></i>Co-Fi</span>
-            <p class="text-muted mt-2">Create Your Account</p>
+            <span class="fs-2 fw-bold"><i class="fas fa-wallet me-2 brand-icon"></i>Co-Fi</span>
+            <p class="text-muted mt-1 mb-0">Create Your Account</p>
+            <small class="text-muted">Your data is completely isolated from other users</small>
         </div>
 
-        {% if form.errors %}
-            <div class="alert alert-danger py-2" role="alert">
-                <small><i class="fas fa-exclamation-circle me-1"></i> Please correct the errors below.</small>
-            </div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label fw-medium">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                        <div class="help-text mt-1">{{ field.help_text|safe }}</div>
-                    {% endif %}
-                    {% for error in field.errors %}
-                        <div class="text-danger mt-1" style="font-size: 0.85rem;"><i class="fas fa-times-circle me-1"></i>{{ error }}</div>
-                    {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} py-2 mb-3" role="alert">
+                    <small><i class="fas fa-check-circle me-1"></i> {{ message }}</small>
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mt-2">
-                Sign Up <i class="fas fa-user-plus ms-2"></i>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Username -->
+            <div class="mb-3">
+                <label for="id_username" class="form-label fw-medium">Username</label>
+                <input type="text" name="username" autofocus required
+                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                       id="id_username" placeholder="Choose a username"
+                       value="{{ form.username.value|default:'' }}">
+                {% for error in form.username.errors %}
+                    <div class="field-error"><i class="fas fa-times-circle me-1"></i>{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- Password 1 -->
+            <div class="mb-3">
+                <label for="id_password1" class="form-label fw-medium">Password</label>
+                <div class="input-group">
+                    <input type="password" name="password1" required
+                           class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                           id="id_password1" placeholder="Create a strong password">
+                    <button class="btn btn-outline-secondary" type="button" id="togglePwd1" tabindex="-1">
+                        <i class="fas fa-eye" id="togglePwd1Icon"></i>
+                    </button>
+                </div>
+                <div class="help-text">Must be at least 8 characters and not too common.</div>
+                {% for error in form.password1.errors %}
+                    <div class="field-error"><i class="fas fa-times-circle me-1"></i>{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- Password 2 (confirm) -->
+            <div class="mb-4">
+                <label for="id_password2" class="form-label fw-medium">Confirm Password</label>
+                <div class="input-group">
+                    <input type="password" name="password2" required
+                           class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                           id="id_password2" placeholder="Re-enter your password">
+                    <button class="btn btn-outline-secondary" type="button" id="togglePwd2" tabindex="-1">
+                        <i class="fas fa-eye" id="togglePwd2Icon"></i>
+                    </button>
+                </div>
+                {% for error in form.password2.errors %}
+                    <div class="field-error"><i class="fas fa-times-circle me-1"></i>{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                Create Account <i class="fas fa-user-plus ms-2"></i>
             </button>
         </form>
+
         <div class="text-center mt-4">
-            <small class="text-muted">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none">Log In</a></small>
+            <small class="text-muted">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-medium">Sign In</a></small>
         </div>
     </div>
 
-    <!-- Apply Bootstrap classes to the generated Django fields using JS -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
-            inputs.forEach(input => {
-                input.classList.add('form-control');
+        function makeEyeToggle(btnId, iconId, inputId) {
+            document.getElementById(btnId).addEventListener('click', function() {
+                const input = document.getElementById(inputId);
+                const icon = document.getElementById(iconId);
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
+                }
             });
-        });
+        }
+        makeEyeToggle('togglePwd1', 'togglePwd1Icon', 'id_password1');
+        makeEyeToggle('togglePwd2', 'togglePwd2Icon', 'id_password2');
     </script>
 </body>
 </html>
