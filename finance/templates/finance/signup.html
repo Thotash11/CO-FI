@@ -123,7 +123,7 @@
                            class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
                            id="id_password1" placeholder="Create a strong password">
                     <button class="btn btn-outline-secondary" type="button" id="togglePwd1" tabindex="-1">
-                        <i class="fas fa-eye" id="togglePwd1Icon"></i>
+                        <i class="fas fa-eye-slash" id="togglePwd1Icon"></i>
                     </button>
                 </div>
                 <div class="help-text">Must be at least 8 characters and not too common.</div>
@@ -140,7 +140,7 @@
                            class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
                            id="id_password2" placeholder="Re-enter your password">
                     <button class="btn btn-outline-secondary" type="button" id="togglePwd2" tabindex="-1">
-                        <i class="fas fa-eye" id="togglePwd2Icon"></i>
+                        <i class="fas fa-eye-slash" id="togglePwd2Icon"></i>
                     </button>
                 </div>
                 {% for error in form.password2.errors %}
@@ -165,10 +165,10 @@
                 const icon = document.getElementById(iconId);
                 if (input.type === 'password') {
                     input.type = 'text';
-                    icon.classList.replace('fa-eye', 'fa-eye-slash');
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
                 } else {
                     input.type = 'password';
-                    icon.classList.replace('fa-eye-slash', 'fa-eye');
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
                 }
             });
         }
